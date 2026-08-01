@@ -1,0 +1,24 @@
+{
+    "name": "pushinbr/pam-native-plugin-kit",
+    "description": "Scaffold, validate and generate typed PAM Native plugins.",
+    "type": "library",
+    "license": "BUSL-1.1",
+    "require": {
+        "php": "^8.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pam\\Native\\PluginKit\\": "src/"
+        }
+    },
+    "bin": [
+        "bin/pam-native-plugin"
+    ],
+    "scripts": {
+        "test": "php tests/run.php"
+    },
+    "config": {
+        "platform-check": true,
+        "sort-packages": true
+    }
+}

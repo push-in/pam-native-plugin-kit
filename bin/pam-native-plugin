@@ -1,0 +1,59 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Pam\Native\PluginKit\Idl\IdlCompiler;
+use Pam\Native\PluginKit\ManifestValidator;
+use Pam\Native\PluginKit\Scaffolder;
+
+$autoload = dirname(__DIR__).'/vendor/autoload.php';
+if (is_file($autoload)) {
+    require $autoload;
+} else {
+    spl_autoload_register(static function (string $class): void {
+        $prefix = 'Pam\\Native\\PluginKit\\';
+        if (str_starts_with($class, $prefix)) {
+            require dirname(__DIR__).'/src/'.str_replace('\\', '/', substr($class, strlen($prefix))).'.php';
+        }
+    });
+}
+
+$command = $argv[1] ?? null;
+$arguments = array_slice($argv, 2);
+
+try {
+    if ($command === 'validate' && count($arguments) === 1) {
+        $result = (new ManifestValidator())->validateFile($arguments[0]);
+        foreach ($result->diagnostics as $diagnostic) {
+            fwrite(STDERR, strtoupper($diagnostic->severity->name)." {$diagnostic->path}: {$diagnostic->message}\n");
+        }
+        if (!$result->passed()) {
+            exit(1);
+        }
+        fwrite(STDOUT, "Plugin manifest is valid.\n");
+        exit(0);
+    }
+    if ($command === 'compile' && count($arguments) === 2) {
+        $generated = (new IdlCompiler())->compileFile($arguments[0]);
+        if (!is_dir($arguments[1]) && !mkdir($arguments[1], 0777, true) && !is_dir($arguments[1])) {
+            throw new RuntimeException('Cannot create output directory.');
+        }
+        foreach (['php' => 'Contracts.php', 'kotlin' => 'Contracts.kt', 'swift' => 'Contracts.swift'] as $language => $file) {
+            file_put_contents($arguments[1].'/'.$file, $generated[$language], LOCK_EX);
+        }
+        fwrite(STDOUT, "Generated PHP, Kotlin and Swift contracts.\n");
+        exit(0);
+    }
+    if ($command === 'new' && count($arguments) === 2) {
+        (new Scaffolder())->create($arguments[0], $arguments[1]);
+        fwrite(STDOUT, "Created {$arguments[0]} in {$arguments[1]}.\n");
+        exit(0);
+    }
+
+    fwrite(STDERR, "Usage:\n  pam-native-plugin validate <manifest>\n  pam-native-plugin compile <idl> <output>\n  pam-native-plugin new <vendor/package> <directory>\n");
+    exit(2);
+} catch (Throwable $throwable) {
+    fwrite(STDERR, $throwable->getMessage()."\n");
+    exit(1);
+}

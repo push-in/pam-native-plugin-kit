@@ -1,0 +1,30 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://pam.dev/schemas/pam-native-idl.v1.schema.json",
+    "title": "PAM Native typed plugin IDL",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["version", "namespace"],
+    "properties": {
+        "version": {"const": 1},
+        "namespace": {"type": "string", "pattern": "^[A-Z][A-Za-z0-9_]*(\\.[A-Z][A-Za-z0-9_]*)+$"},
+        "enums": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {"type": "integer", "minimum": 1}
+            }
+        },
+        "records": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "string",
+                    "pattern": "^(?:string|int|float|bool|bytes|[A-Z][A-Za-z0-9_]*)(?:\\?)?$"
+                }
+            }
+        }
+    }
+}

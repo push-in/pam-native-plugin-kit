@@ -2,7 +2,7 @@
     "name": "pushinbr/pam-native-plugin-kit",
     "description": "Scaffold, validate and generate typed PAM Native plugins.",
     "type": "library",
-    "license": "BUSL-1.1",
+    "license": "Apache-2.0",
     "require": {
         "php": "^8.4"
     },

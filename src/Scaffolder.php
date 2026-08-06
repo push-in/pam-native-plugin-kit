@@ -36,7 +36,7 @@ final class Scaffolder
             '.github/workflows/ci.yml' => $this->workflow(),
             'README.md' => $this->readme($package),
             'CHANGELOG.md' => "# Changelog\n\n## Unreleased\n\n- Initial implementation.\n",
-            'LICENSE' => "Business Source License 1.1\n\nSee https://mariadb.com/bsl11/.\n",
+            'LICENSE' => $this->license(),
         ];
 
         $created = [];
@@ -66,13 +66,24 @@ final class Scaffolder
             'name' => $package,
             'description' => 'A production-ready PAM Native plugin.',
             'type' => 'pam-native-plugin',
-            'license' => 'BUSL-1.1',
+            'license' => 'Apache-2.0',
             'require' => ['php' => '^8.4', 'pushinbr/pam-native' => '^0.6.0'],
             'autoload' => ['psr-4' => [$namespace.'\\' => 'src/']],
             'extra' => ['pam-native' => ['plugin' => 'pam-native.plugin.json']],
             'scripts' => ['test' => 'php tests/run.php'],
             'config' => ['platform-check' => true, 'sort-packages' => true],
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n";
+    }
+
+    private function license(): string
+    {
+        $license = file_get_contents(dirname(__DIR__).'/LICENSE');
+
+        if ($license === false) {
+            throw new RuntimeException('Cannot read the bundled Apache-2.0 license.');
+        }
+
+        return $license;
     }
 
     private function manifest(string $package, string $namespace, string $android, string $swift): string

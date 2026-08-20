@@ -25,7 +25,10 @@ jobs:
           tools: composer:v2
           coverage: none
       - name: Validate package metadata
-        run: composer validate --strict --no-check-lock
+        run: |
+          composer validate --strict --no-check-lock
+          python3 -m json.tool resources/pam-native.idl.schema.json >/dev/null
+          python3 -m json.tool resources/pam-native-conformance.schema.json >/dev/null
       - name: Install locked-compatible dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
       - name: Run package contracts
@@ -35,3 +38,10 @@ jobs:
           else
             composer test
           fi
+      - name: Certify a generated contributor plugin
+        run: |
+          fixture="${RUNNER_TEMP}/pam-native-conformance-fixture"
+          php bin/pam-native-plugin new acme/pam-native-certified "${fixture}"
+          php bin/pam-native-plugin conformance "${fixture}" --json \
+            >"${RUNNER_TEMP}/pam-native-conformance.json"
+          python3 -m json.tool "${RUNNER_TEMP}/pam-native-conformance.json" >/dev/null

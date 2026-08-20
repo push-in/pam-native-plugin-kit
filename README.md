@@ -11,6 +11,7 @@ pam doctor
 vendor/bin/pam-native-plugin new acme/pam-native-biometric ./pam-native-biometric
 vendor/bin/pam-native-plugin validate ./pam-native-biometric/pam-native.plugin.json
 vendor/bin/pam-native-plugin compile ./pam-native-biometric/pam-native.idl.json ./generated
+vendor/bin/pam-native-plugin conformance ./pam-native-biometric --json > conformance.json
 ```
 
 ## Typed IDL
@@ -42,6 +43,27 @@ silently disagree about wire values.
 Generated sources are deterministic and suitable for committing or checking
 in CI. The plugin manifest and IDL digests are recorded by PAM Native in
 `.pam-native/plugins.lock.json`.
+
+## Portable contributor certification
+
+`conformance` is a non-mutating, dependency-free package audit that can run
+before native SDK jobs. It emits schema `1`, Native `surfaceCode: 2`, sequential
+integer result/check codes, and SHA-256 evidence for seven bounded checks:
+
+1. manifest validation;
+2. typed IDL compilation;
+3. byte-for-byte PHP/Kotlin/Swift generation determinism;
+4. Composer plugin metadata;
+5. declared Kotlin source evidence;
+6. declared Swift source evidence;
+7. the portable PHP test entrypoint.
+
+The runner reads at most 1 MiB per document, 256 native source files and 16 MiB
+per platform. Package paths are confined segment-by-segment; symlinks,
+traversal, duplicate source evidence and empty native source sets fail closed.
+The JSON contract is
+`resources/pam-native-conformance.schema.json`. This portable report does not
+replace Android/iOS compilation, device tests, signing or store validation.
 
 
 ## What installation does

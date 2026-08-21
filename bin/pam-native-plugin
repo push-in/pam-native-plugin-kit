@@ -3,6 +3,8 @@
 
 declare(strict_types=1);
 
+use Pam\Native\PluginKit\ConformanceRunner;
+use Pam\Native\PluginKit\ConformanceResultCode;
 use Pam\Native\PluginKit\Idl\IdlCompiler;
 use Pam\Native\PluginKit\ManifestValidator;
 use Pam\Native\PluginKit\Scaffolder;
@@ -50,8 +52,24 @@ try {
         fwrite(STDOUT, "Created {$arguments[0]} in {$arguments[1]}.\n");
         exit(0);
     }
+    if ($command === 'conformance'
+        && (count($arguments) === 1 || (count($arguments) === 2 && $arguments[1] === '--json'))) {
+        $report = (new ConformanceRunner())->run($arguments[0]);
+        if (($arguments[1] ?? null) === '--json') {
+            fwrite(STDOUT, json_encode(
+                $report->toArray(),
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+            )."\n");
+        } else {
+            foreach ($report->checks as $check) {
+                $label = $check->resultCode === ConformanceResultCode::Passed ? 'pass' : 'fail';
+                fwrite(STDOUT, "[{$label}] {$check->checkCode->value} {$check->message}\n");
+            }
+        }
+        exit($report->passed() ? 0 : 1);
+    }
 
-    fwrite(STDERR, "Usage:\n  pam-native-plugin validate <manifest>\n  pam-native-plugin compile <idl> <output>\n  pam-native-plugin new <vendor/package> <directory>\n");
+    fwrite(STDERR, "Usage:\n  pam-native-plugin validate <manifest>\n  pam-native-plugin compile <idl> <output>\n  pam-native-plugin new <vendor/package> <directory>\n  pam-native-plugin conformance <plugin-directory> [--json]\n");
     exit(2);
 } catch (Throwable $throwable) {
     fwrite(STDERR, $throwable->getMessage()."\n");

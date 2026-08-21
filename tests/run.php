@@ -13,6 +13,7 @@ spl_autoload_register(static function (string $class): void {
     }
 });
 
+use Pam\Native\PluginKit\ConformanceRunner;
 use Pam\Native\PluginKit\Idl\IdlCompiler;
 use Pam\Native\PluginKit\Idl\IdlException;
 use Pam\Native\PluginKit\ManifestValidator;
@@ -113,6 +114,24 @@ $test('scaffolds a certifiable cross-platform package', static function () use (
     $expect($result->passed(), 'Generated manifest must pass Plugin Kit validation.');
     $generated = (new IdlCompiler())->compileFile($root.'/pam-native.idl.json');
     $expect(str_contains($generated['swift'], 'OperationState'));
+    $conformance = (new ConformanceRunner())->run($root);
+    $expect($conformance->passed(), 'Generated plugin must pass portable conformance.');
+    $report = $conformance->toArray();
+    $expect($report['schemaVersion'] === 1);
+    $expect($report['surfaceCode'] === 2);
+    $expect($report['resultCode'] === 1);
+    $expect(array_column($report['checks'], 'checkCode') === range(1, 7));
+    foreach ($report['checks'] as $check) {
+        $expect($check['resultCode'] === 1);
+        $expect(is_string($check['evidenceSha256']) && strlen($check['evidenceSha256']) === 64);
+    }
+    $command = escapeshellarg(PHP_BINARY).' '
+        .escapeshellarg(dirname(__DIR__).'/bin/pam-native-plugin').' conformance '
+        .escapeshellarg($root).' --json';
+    exec($command, $lines, $exitCode);
+    $expect($exitCode === 0, 'Conformance CLI must accept a generated plugin.');
+    $cliReport = json_decode(implode("\n", $lines), true, flags: JSON_THROW_ON_ERROR);
+    $expect($cliReport === $report, 'CLI and library conformance reports must be identical.');
 
     $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
@@ -122,6 +141,32 @@ $test('scaffolds a certifiable cross-platform package', static function () use (
         $entry->isDir() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
     }
     rmdir($root);
+});
+
+$test('fails conformance without reading symlinked IDL evidence', static function () use ($expect): void {
+    $root = sys_get_temp_dir().'/pam-plugin-conformance-'.bin2hex(random_bytes(8));
+    (new Scaffolder())->create('acme/pam-native-example', $root);
+    $outside = sys_get_temp_dir().'/pam-plugin-outside-'.bin2hex(random_bytes(8)).'.json';
+    file_put_contents($outside, '{"version":1,"namespace":"Outside.Contract"}', LOCK_EX);
+    unlink($root.'/pam-native.idl.json');
+    symlink($outside, $root.'/pam-native.idl.json');
+
+    $report = (new ConformanceRunner())->run($root);
+    $expect(!$report->passed(), 'Symlinked IDL must fail conformance.');
+    $checks = $report->toArray()['checks'];
+    $expect($checks[1]['checkCode'] === 2 && $checks[1]['resultCode'] === 2);
+    $expect($checks[2]['checkCode'] === 3 && $checks[2]['resultCode'] === 2);
+    $expect($checks[1]['evidenceSha256'] === null);
+
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST,
+    );
+    foreach ($iterator as $entry) {
+        $entry->isDir() && !$entry->isLink() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
+    }
+    rmdir($root);
+    unlink($outside);
 });
 
 $test('validates integer-coded iOS integration metadata', static function () use ($expect): void {

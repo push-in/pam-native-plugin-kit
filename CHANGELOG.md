@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 - 2026-08-23
 
 - Add a deterministic, non-mutating contributor conformance command with a
   versioned JSON report and schema.
@@ -8,6 +8,7 @@
   and iOS source evidence, and the portable test entrypoint.
 - Reject traversal, symlinked inputs, oversized documents, duplicate source
   evidence, and non-sequential protocol result codes.
+- Require PHP 8.5 and certify plugins targeting PAM Native 0.8.
 
 ## 0.1.0 - 2026-08-01
 

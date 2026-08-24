@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1 - 2026-08-24
+
+- Document the canonical Composer installation and removal workflow.
+
 ## 0.4.0 - 2026-08-24
 
 - Generate PHP 8.5 plugins targeting the stable PAM Native 0.8 ABI.

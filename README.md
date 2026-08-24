@@ -21,8 +21,8 @@ validates plugin manifests, compiles one typed IDL into PHP, Kotlin and Swift,
 and scaffolds cross-platform packages with CI from the first commit.
 
 ```bash
-pam add plugin-kit
-pam doctor
+pam composer require pushinbr/pam-native-plugin-kit
+pam doctor --fix
 
 vendor/bin/pam-native-plugin new acme/pam-native-biometric ./pam-native-biometric
 vendor/bin/pam-native-plugin validate ./pam-native-biometric/pam-native.plugin.json
@@ -84,9 +84,9 @@ replace Android/iOS compilation, device tests, signing or store validation.
 
 ## What installation does
 
-`pam add plugin-kit` resolves the official compatible package, performs a non-mutating Composer preflight, updates the normal `composer.json` and `composer.lock`, refreshes generated native integration when required, and leaves the project ready for `pam doctor` validation.
+`pam composer require pushinbr/pam-native-plugin-kit` installs the package through the project's normal `composer.json` and `composer.lock`. Run `pam doctor --fix` afterward to validate the environment and regenerate native integration when required.
 
-Use `pam packages` to inspect availability and `pam remove plugin-kit` to uninstall the capability safely. Direct Composer commands are an advanced interoperability path; PAM is the supported application workflow.
+Use `pam packages` to inspect direct installed Composer dependencies and `pam composer remove pushinbr/pam-native-plugin-kit` to uninstall the capability.
 
 ## API guide
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0 - 2026-08-24
+
+- Generate PHP 8.5 plugins targeting the stable PAM Native 0.8 ABI.
+- Generate PHP 8.5 CI and PAM-first installation instructions.
+
 ## 0.2.0 - 2026-08-23
 
 - Add a deterministic, non-mutating contributor conformance command with a

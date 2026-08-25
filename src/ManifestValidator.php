@@ -45,10 +45,41 @@ final class ManifestValidator
     public function validate(array $manifest, string $packageRoot): ValidationResult
     {
         $diagnostics = [];
-        $allowed = ['$schema', 'version', 'protocol', 'pamNative', 'php', 'android', 'ios', 'modules', 'views', 'idl'];
+        $allowed = ['$schema', 'version', 'protocol', 'pamNative', 'capabilities', 'php', 'android', 'ios', 'modules', 'views', 'idl'];
         foreach (array_keys($manifest) as $key) {
             if (!is_string($key) || !in_array($key, $allowed, true)) {
                 $diagnostics[] = $this->error('$.'.(string) $key, 'Unknown manifest property.');
+            }
+        }
+
+        $capabilities = $manifest['capabilities'] ?? ['required' => [], 'optional' => []];
+        if (!is_array($capabilities) || array_is_list($capabilities)) {
+            $diagnostics[] = $this->error('$.capabilities', 'Capabilities must be an object.');
+        } else {
+            foreach (array_keys($capabilities) as $key) {
+                if (!is_string($key) || !in_array($key, ['required', 'optional'], true)) {
+                    $diagnostics[] = $this->error('$.capabilities.'.(string) $key, 'Unknown capabilities property.');
+                }
+            }
+            $seenCapabilities = [];
+            foreach (['required', 'optional'] as $kind) {
+                $values = $capabilities[$kind] ?? [];
+                if (!is_array($values) || !array_is_list($values)) {
+                    $diagnostics[] = $this->error('$.capabilities.'.$kind, 'Expected a capability list.');
+                    continue;
+                }
+                foreach ($values as $index => $capability) {
+                    $path = '$.capabilities.'.$kind.'['.$index.']';
+                    if (!is_string($capability)
+                        || preg_match('/^[a-z][a-z0-9]*(?:[._-][a-z0-9]+){1,7}$/D', $capability) !== 1
+                        || strlen($capability) > 96) {
+                        $diagnostics[] = $this->error($path, 'Invalid bounded capability name.');
+                    } elseif (isset($seenCapabilities[$capability])) {
+                        $diagnostics[] = $this->error($path, 'Capability names must be unique across required and optional lists.');
+                    } else {
+                        $seenCapabilities[$capability] = true;
+                    }
+                }
             }
         }
 

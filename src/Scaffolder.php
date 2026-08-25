@@ -93,7 +93,11 @@ final class Scaffolder
             '$schema' => 'vendor/pushinbr/pam-native/resources/pam-native.plugin.schema.json',
             'version' => 1,
             'protocol' => 1,
-            'pamNative' => ['minimum' => '0.8.0', 'maximumExclusive' => '0.9.0'],
+            'pamNative' => ['minimum' => '0.8.0', 'maximumExclusive' => '2.0.0'],
+            'capabilities' => [
+                'required' => ['runtime.modules.v1', 'wire.binary.v1'],
+                'optional' => [],
+            ],
             'php' => ['provider' => $namespace.'\\'.$class.'PluginProvider'],
             'android' => ['namespace' => $android, 'minSdk' => 26, 'sourceDirs' => ['android/src/main/kotlin']],
             'ios' => ['minimumVersion' => '15.0', 'sourceDirs' => ['ios/Sources']],

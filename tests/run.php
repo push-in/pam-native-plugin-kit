@@ -133,7 +133,7 @@ $test('scaffolds a certifiable cross-platform package', static function () use (
     $composer = file_get_contents($root.'/composer.json');
     $workflow = file_get_contents($root.'/.github/workflows/ci.yml');
     $expect(is_string($composer) && str_contains($composer, '"php": "^8.5"'));
-    $expect(is_string($composer) && str_contains($composer, '"pushinbr/pam-native": "^0.8.0"'));
+    $expect(is_string($composer) && str_contains($composer, '"pushinbr/pam-native": "^0.8 || ^0.9 || ^0.10 || ^1.0"'));
     $expect(is_string($workflow) && str_contains($workflow, "php-version: '8.5'"));
     $result = (new ManifestValidator())->validateFile($root.'/pam-native.plugin.json');
     $expect($result->passed(), 'Generated manifest must pass Plugin Kit validation.');

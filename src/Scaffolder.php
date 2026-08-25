@@ -67,7 +67,10 @@ final class Scaffolder
             'description' => 'A production-ready PAM Native plugin.',
             'type' => 'pam-native-plugin',
             'license' => 'Apache-2.0',
-            'require' => ['php' => '^8.5', 'pushinbr/pam-native' => '^0.8.0'],
+            'require' => [
+                'php' => '^8.5',
+                'pushinbr/pam-native' => '^0.8 || ^0.9 || ^0.10 || ^1.0',
+            ],
             'autoload' => ['psr-4' => [$namespace.'\\' => 'src/']],
             'extra' => ['pam-native' => ['plugin' => 'pam-native.plugin.json']],
             'scripts' => ['test' => 'php tests/run.php'],

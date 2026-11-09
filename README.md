@@ -1,74 +1,59 @@
-<!-- pam:product-page:start -->
 <div align="center">
 
-# PAM Native Plugin Kit
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banner-dark.svg">
+  <img src=".github/assets/banner-light.svg" width="880" alt="pam-native-plugin-kit: Scaffold, validate and code-generate typed PAM Native plugins from one IDL.">
+</picture>
 
-**Build one typed capability contract; generate PHP, Kotlin, and Swift.**
+**The official toolchain for building PAM Native plugins.**<br>
+Validate plugin manifests, compile one typed IDL into PHP, Kotlin and Swift, scaffold cross-platform packages with CI, and certify them with a portable conformance report.
 
-Scaffold, validate, and code-generate stable PAM Native plugins with protocol-safe enums, manifests, tests, and CI.
+[![Packagist](https://img.shields.io/packagist/v/pushinbr/pam-native-plugin-kit?label=packagist&color=f53003)](https://packagist.org/packages/pushinbr/pam-native-plugin-kit)
+[![Latest release](https://img.shields.io/github/v/release/push-in/pam-native-plugin-kit?label=release&color=e3a008)](https://github.com/push-in/pam-native-plugin-kit/releases/latest)
+![PHP 8.5](https://img.shields.io/badge/php-8.5-777bb4)
+[![CI](https://img.shields.io/github/actions/workflow/status/push-in/pam-native-plugin-kit/ci.yml?branch=main&label=ci)](https://github.com/push-in/pam-native-plugin-kit/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/push-in/pam-native-plugin-kit?color=1f6feb)](LICENSE)
 
-[![Latest version](https://img.shields.io/packagist/v/pushinbr/pam-native-plugin-kit?style=flat-square&label=stable)](https://packagist.org/packages/pushinbr/pam-native-plugin-kit)
-[![CI](https://img.shields.io/github/actions/workflow/status/push-in/pam-native-plugin-kit/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/push-in/pam-native-plugin-kit/actions)
-![PHP](https://img.shields.io/badge/PHP-8.5-777BB4?style=flat-square&logo=php&logoColor=white)
-![Android](https://img.shields.io/badge/Android-API%2026%2B-3DDC84?style=flat-square&logo=android&logoColor=white)
-![iOS](https://img.shields.io/badge/iOS-15%2B-000000?style=flat-square&logo=apple&logoColor=white)
-
-**[Documentation](https://push-in.github.io/pam-docs/native/overview/) · [Quick start](#quick-start) · [What you can build](#what-you-can-build) · [PAM ecosystem](https://push-in.github.io/pam-docs/ecosystem/) · [Issues](https://github.com/push-in/pam-native-plugin-kit/issues)**
+[Install](#install) · [Quick example](#quick-example) · [Typed IDL](#typed-idl) · [Conformance](#portable-contributor-certification) · [Docs](#docs) · [Issues](https://github.com/push-in/pam-native-plugin-kit/issues)
 
 </div>
 
----
+<a id="install"></a>
+## <picture><img src=".github/assets/icons/terminal.svg" width="22" height="22" alt=""></picture> Install
 
-## Why PAM Native Plugin Kit
+Inside a PAM project, as a development tool:
 
-Scaffold, validate, and code-generate stable PAM Native plugins with protocol-safe enums, manifests, tests, and CI. The public API is strictly typed for PHP 8.5; expensive or frame-sensitive work stays in Rust or the platform SDK instead of crossing the application boundary every frame.
-
-| | |
-| --- | --- |
-| **Best for** | A focused capability you can add to any PAM Native application |
-| **Native path** | Typed IDL · PHP/Kotlin/Swift code generation |
-| **Application model** | Composer package + generated native integration |
-| **Design rule** | Independent module; no feed, vertical, or application template bundled |
-
-## What you can build
-
-- Wrapping an internal native SDK
-- Publishing a focused community capability
-- Generating parity-safe cross-platform bridge code
-
-## Quick start
-
-Already have a PAM Native project? Add only this capability:
-
-```bash
-pam composer require pushinbr/pam-native-plugin-kit
-pam doctor --fix
+```sh
+pam composer require --dev pushinbr/pam-native-plugin-kit
 ```
 
-New to PAM? Follow the **[five-minute PAM Native setup](https://push-in.github.io/pam-docs/native/overview/)** once, then return here. Your application stays a normal Composer project with a committed lockfile.
-<!-- pam:product-page:end -->
+The kit is plain PHP with no runtime dependency. Its CLI is `vendor/bin/pam-native-plugin`; run it on PAM's PHP runtime with `pam exec` as shown below. New to PAM? `pam init my-app --template native` creates a PAM Native project (see the [PAM Native overview](https://push-in.github.io/pam-docs/native/overview/)).
 
-## See it in action
+<a id="quick-example"></a>
+## <picture><img src=".github/assets/icons/code.svg" width="22" height="22" alt=""></picture> Quick example
 
-The official toolchain for building real PAM Native ecosystem packages. It
-validates plugin manifests, compiles one typed IDL into PHP, Kotlin and Swift,
-and scaffolds cross-platform packages with CI from the first commit.
-
-```bash
-pam composer require pushinbr/pam-native-plugin-kit
-pam doctor --fix
-
-vendor/bin/pam-native-plugin new acme/pam-native-biometric ./pam-native-biometric
-vendor/bin/pam-native-plugin validate ./pam-native-biometric/pam-native.plugin.json
-vendor/bin/pam-native-plugin compile ./pam-native-biometric/pam-native.idl.json ./generated
-vendor/bin/pam-native-plugin conformance ./pam-native-biometric --json > conformance.json
+```sh
+pam exec vendor/bin/pam-native-plugin new acme/pam-native-biometric ./pam-native-biometric
+pam exec vendor/bin/pam-native-plugin validate ./pam-native-biometric/pam-native.plugin.json
+pam exec vendor/bin/pam-native-plugin compile ./pam-native-biometric/pam-native.idl.json ./generated
+pam exec vendor/bin/pam-native-plugin conformance ./pam-native-biometric --json > conformance.json
 ```
 
-## Typed IDL
+`new` writes a cross-platform package (`pam-native.plugin.json`, `pam-native.idl.json`, `src/`, `android/`, `ios/`, `tests/`, CI). `compile` writes `Contracts.php`, `Contracts.kt` and `Contracts.swift`. Every command exits non-zero on failure.
 
-Coded variants are integer enums with sequential values beginning at `1`.
-The compiler rejects gaps and string variants so PHP, Kotlin and Swift cannot
-silently disagree about wire values.
+<a id="platform-support"></a>
+## <picture><img src=".github/assets/icons/grid.svg" width="22" height="22" alt=""></picture> Platform support
+
+| Platform | Support | Notes |
+| --- | --- | --- |
+| PHP | 8.5+ | No other runtime dependency (`composer.json`) |
+| Generated code | PHP · Kotlin · Swift | From one `pam-native.idl.json` |
+| Scaffolded plugins | Android · iOS | Native SDK builds, device tests and signing stay in the plugin's own CI |
+
+<a id="typed-idl"></a>
+## <picture><img src=".github/assets/icons/file.svg" width="22" height="22" alt=""></picture> Typed IDL
+
+Coded variants are integer enums with sequential values beginning at `1`. The compiler rejects gaps and string variants so PHP, Kotlin and Swift cannot silently disagree about wire values.
 
 ```json
 {
@@ -90,15 +75,12 @@ silently disagree about wire values.
 }
 ```
 
-Generated sources are deterministic and suitable for committing or checking
-in CI. The plugin manifest and IDL digests are recorded by PAM Native in
-`.pam-native/plugins.lock.json`.
+Generated sources are deterministic and suitable for committing or checking in CI. The plugin manifest and IDL digests are recorded by PAM Native in `.pam-native/plugins.lock.json`. The schema is `resources/pam-native.idl.schema.json`.
 
-## Portable contributor certification
+<a id="portable-contributor-certification"></a>
+## <picture><img src=".github/assets/icons/shield.svg" width="22" height="22" alt=""></picture> Portable contributor certification
 
-`conformance` is a non-mutating, dependency-free package audit that can run
-before native SDK jobs. It emits schema `1`, Native `surfaceCode: 2`, sequential
-integer result/check codes, and SHA-256 evidence for seven bounded checks:
+`conformance` is a non-mutating, dependency-free package audit that can run before native SDK jobs. It emits schema `1`, Native `surfaceCode: 2`, sequential integer result/check codes, and SHA-256 evidence for seven bounded checks:
 
 1. manifest validation;
 2. typed IDL compilation;
@@ -108,32 +90,23 @@ integer result/check codes, and SHA-256 evidence for seven bounded checks:
 6. declared Swift source evidence;
 7. the portable PHP test entrypoint.
 
-The runner reads at most 1 MiB per document, 256 native source files and 16 MiB
-per platform. Package paths are confined segment-by-segment; symlinks,
-traversal, duplicate source evidence and empty native source sets fail closed.
-The JSON contract is
-`resources/pam-native-conformance.schema.json`. This portable report does not
-replace Android/iOS compilation, device tests, signing or store validation.
+The runner reads at most 1 MiB per document, 256 native source files and 16 MiB per platform. Package paths are confined segment-by-segment; symlinks, traversal, duplicate source evidence and empty native source sets fail closed. The JSON contract is `resources/pam-native-conformance.schema.json`. This portable report does not replace Android/iOS compilation, device tests, signing or store validation.
 
-
-## What installation does
-
-`pam composer require pushinbr/pam-native-plugin-kit` installs the package through the project's normal `composer.json` and `composer.lock`. Run `pam doctor --fix` afterward to validate the environment and regenerate native integration when required.
-
-Use `pam packages` to inspect direct installed Composer dependencies and `pam composer remove pushinbr/pam-native-plugin-kit` to uninstall the capability.
-
-## API guide
+<a id="api-guide"></a>
+## <picture><img src=".github/assets/icons/code.svg" width="22" height="22" alt=""></picture> API guide
 
 | API | Responsibility |
 | --- | --- |
 | `Scaffolder` | Create a cross-platform plugin repository with CI. |
 | `ManifestValidator` | Validate plugin metadata, native sources, and declared contracts. |
 | `IdlCompiler` | Generate deterministic PHP, Kotlin, and Swift types from one IDL. |
+| `ConformanceRunner` / `ConformanceReport` | Run the seven portable checks and export the report. |
 | `Diagnostic` / `ValidationResult` | Consume typed validation findings in tooling or CI. |
 
 All coded states, kinds, and variants are sequential integer-backed enums. Use enum cases in application code; do not depend on raw wire numbers.
 
-## Production checklist
+<a id="production-checklist"></a>
+## <picture><img src=".github/assets/icons/flag.svg" width="22" height="22" alt=""></picture> Production checklist
 
 - Commit generated sources and verify regeneration is clean in CI.
 - Use sequential integer enums beginning at `1` in every wire contract.
@@ -141,20 +114,34 @@ All coded states, kinds, and variants are sequential integer-backed enums. Use e
 - Run `pam doctor`, `pam test`, and a signed release build on every supported platform.
 - Exercise denial, cancellation, backgrounding, process restart, and offline behavior before release.
 
-## Troubleshooting
+<a id="troubleshooting"></a>
+## <picture><img src=".github/assets/icons/bug.svg" width="22" height="22" alt=""></picture> Troubleshooting
 
 - **Validation reports missing files:** compare paths with the package root in the manifest.
 - **Generated languages disagree:** remove handwritten copies and regenerate from the IDL.
 - **CI has a dirty diff:** run compile locally and commit deterministic output.
 - **Native integration is stale:** run `pam doctor --fix`, rebuild the native host, and inspect the first reported diagnostic.
 
-## Compatibility and support
+Report security vulnerabilities through the repository security policy or GitHub private vulnerability reporting, not a public issue.
 
-This package targets PHP 8.5 and PAM Native `0.8.x`, Android API 26+, and iOS 15+ unless a platform-specific section above states a stricter requirement. Platform SDKs, credentials, entitlements, physical hardware, and store configuration remain application responsibilities.
+<a id="docs"></a>
+## <picture><img src=".github/assets/icons/book.svg" width="22" height="22" alt=""></picture> Docs
 
-- [PAM documentation](https://push-in.github.io/pam-docs/introduction/)
+- [Package guide on pam-docs](https://push-in.github.io/pam-docs/packages/native-plugin-kit/)
 - [PAM Native overview](https://push-in.github.io/pam-docs/native/overview/)
 - [Plugin and native capability model](https://push-in.github.io/pam-docs/native/plugins/)
+- [Changelog](CHANGELOG.md)
 - [Report an issue](https://github.com/push-in/pam-native-plugin-kit/issues)
 
-Security vulnerabilities should be reported through the repository security policy or GitHub private vulnerability reporting, not a public issue.
+<a id="pam-ecosystem"></a>
+## <picture><img src=".github/assets/icons/plug.svg" width="22" height="22" alt=""></picture> Part of the PAM ecosystem
+
+PAM runs PHP natively on servers, desktops and phones. This repository is one piece of it.
+
+| [**PAM**](https://github.com/push-in/pam) | [**PAM Desktop**](https://github.com/push-in/pam-desktop) | [**PAM Native**](https://github.com/push-in/pam-native) | [**Ecosystem**](https://github.com/push-in/pam#ecosystem) |
+| --- | --- | --- | --- |
+| the runtime and CLI | native desktop apps in PHP | native Android and iOS apps in PHP | every official package and plugin |
+
+<sub>Docs: [push-in.github.io/pam-docs](https://push-in.github.io/pam-docs/introduction/) · [Issues](https://github.com/push-in/pam-native-plugin-kit/issues)</sub>
+
+<p align="center"><sub><a href="LICENSE">Apache License 2.0</a> · Made in Brazil by Pushin</sub></p>
